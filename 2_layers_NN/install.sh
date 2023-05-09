@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Change this env variable to change the name of the executable generated with cmake
-export TITLE="SFML_App"
+export TITLE="App"
 
 printb() {
     tput setaf $2

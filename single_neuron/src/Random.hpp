@@ -8,7 +8,7 @@ inline float randomf(float Min, float Max) // Renvoie un nombre entier dans l'in
     float offset=0;
     if(abs(Min) > 0) { offset = Min; }
     float res = float(rand())/float(RAND_MAX) * (Max+1 + Min*(-1)) ;
-    return res + offset;
+    return res + offset-1;
 }
 
 inline int randomi(int Min, int Max) // Renvoie un nombre entier dans l'intervalle [Min;Max]
