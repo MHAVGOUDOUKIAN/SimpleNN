@@ -6,8 +6,8 @@
 #include <chrono>
 
 #define NB_ELEMENTS 5.0f
-#define EPOCH 1000
-#define LEARNING_RATE 1.0f
+#define EPOCH 100
+#define LEARNING_RATE 0.01f
 
 void loadDataset(Matrix& X, Matrix& Y, const int nb_elements) {
 // Création du dataset de plantes toxiques ou saine
@@ -60,9 +60,9 @@ void loadDataset(Matrix& X, Matrix& Y, const int nb_elements) {
 	  - 2 attributs : longueur et largeur feuilles
 */
 
-
 int main() {
 	
+	// Phase d'initialisation
 	srand(time(NULL));
 	Matrix X=Matrix(2, NB_ELEMENTS);
 	Matrix Y=Matrix(1, NB_ELEMENTS);
@@ -75,26 +75,33 @@ int main() {
 
 	for(int i=0; i<W1.row(); i++) {
 		for(int j=0; j<W1.col(); j++) {
-			W1.setCoeff(i,j, randomf(0,3));
+			W1.setCoeff(i,j, randomf(0,5));
 		}	
 	}
 	
+	float val1=randomf(0,5), val2=randomf(0,5);
 	for(int i=0; i<b1.row(); i++) {
 		for(int j=0; j<b1.col(); j++) {
-			if(i) b1.setCoeff(i,j, 2.0);
-			else b1.setCoeff(i,j, 4.0);
+			if(i) b1.setCoeff(i,j, val1);
+			else b1.setCoeff(i,j, val2);
 		}
 	}
 
 	for(int i=0; i<W2.row(); i++) {
 		for(int j=0; j<W2.col(); j++) {
-			W2.setCoeff(i,j, randomf(0,3));
+			W2.setCoeff(i,j, randomf(0,5));
 		}	
 	}
 
+	val1=randomf(0,5);
 	for(int j=0; j<b2.col(); j++) {
-		b2.setCoeff(0,j, 1.0);
+		b2.setCoeff(0,j, val1);
 	}
+
+	W1.disp();
+	b1.disp();
+	W2.disp();
+	b2.disp();
 
 	for(int e=0;e<EPOCH; e++) {
 		// Phase forward propagation
@@ -107,20 +114,22 @@ int main() {
 			A2.applySigmo();
 
 		// Phase back propagation
+			// Seconde couche
 			Matrix dZ2 = A2;
 			A2 -= Y;
 
 			Matrix dW2 = dZ2*A1.transposee();
-			dW2.constMult(1/NB_ELEMENTS);
+			dW2.constMult(1.0f/NB_ELEMENTS);
 
-			Matrix db2=Matrix(dZ2.row(),1,0.0f);
+			Matrix db2=Matrix(1,1,0.0f);
 			for(int i=0; i<dZ2.row(); i++) {
 				for(int j=0; j<dZ2.col(); j++) {
-					db2.setCoeff(i,0, db2.getCoeff(i,0)+dZ2.getCoeff(i,j));
+					db2.setCoeff(0,0, db2.getCoeff(0,0)+dZ2.getCoeff(i,j));
 				}
 			}
-			db2.constMult(1/NB_ELEMENTS);
+			db2.constMult(1.0f/NB_ELEMENTS);
 
+			// Première couche
 			Matrix dZ1=W2.transposee()*dZ2; // *A1(1-A1)
 			for(int i=0; i<A1.row(); i++) {
 				for(int j=0; j<A1.col(); j++) {
@@ -129,30 +138,30 @@ int main() {
 			}
 
 			Matrix dW1 = dZ1 * X.transposee();
-			dW1.constMult(1/NB_ELEMENTS);
+			dW1.constMult(1.0f/NB_ELEMENTS);
 
-			Matrix db1 = Matrix(dZ1.row(),1,0.f);
+			Matrix db1 = Matrix(dZ1.row(),1,0.0f);
 			for(int i=0; i<dZ1.row(); i++) {
 				for(int j=0; j<dZ1.col(); j++) {
 					db1.setCoeff(i,0, db1.getCoeff(i,0)+dZ1.getCoeff(i,j));
 				}
 			}
-			db1.constMult(1/NB_ELEMENTS);
+			db1.constMult(1.0f/NB_ELEMENTS);
 
 		// Phase d'update du réseaux
+			dW1.constMult(LEARNING_RATE); dW2.constMult(LEARNING_RATE);
 			W1-=dW1;
 			W2-=dW2;
 			b2 = Matrix(b2.row(),b2.col(), b2.getCoeff(0,0)-db2.getCoeff(0,0)*LEARNING_RATE);
 			float b11 = b1.getCoeff(0,0);
 			float b12 = b1.getCoeff(1,0);
 			for(int i=0; i<b1.col();i++) {
-				b1.setCoeff(0,i,b11-db1.getCoeff(0,0));
-				b1.setCoeff(1,i,b12-db2.getCoeff(0,0));
+				b1.setCoeff(0,i,b11-db1.getCoeff(0,0)*LEARNING_RATE);
+				b1.setCoeff(1,i,b12-db2.getCoeff(0,0)*LEARNING_RATE);
 			}
 	}
 
-	// prédictions
-
+	// Prédictions
 	Matrix X_test=Matrix(2, NB_ELEMENTS);
 	Matrix Y_test=Matrix(1, NB_ELEMENTS);
 	loadDataset(X_test, Y_test, NB_ELEMENTS);
